@@ -12,7 +12,6 @@ import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
 import org.kohsuke.args4j.Option;
 
-
 public class Main {
 
 	@Option(name="-rest",usage="Specify the path to an .offerings file")
