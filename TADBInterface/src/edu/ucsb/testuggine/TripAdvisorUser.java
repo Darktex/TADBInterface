@@ -1,116 +1,51 @@
 package edu.ucsb.testuggine;
 
-import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
-
+/** Format: 
+ * {"username": "Estherleibel", 
+ * "num_cities": 2, 
+ * "num_helpful_votes": 1, 
+ * "num_reviews": 20, 
+ * "num_type_reviews": 16, 
+ * "id": "C3ECF97B6A4424B63DB907412344B520", 
+ * "location": "New York City, New York"}
+ * */
 public class TripAdvisorUser {
-	private String id;
-	private String userName;
+	String userName;
 
-	private Integer totalReviewsCount;
-	private Integer restaurantReviewsCount;
-	private Integer reviewsInCitiesCount; // "Reviews in N cities"
-	private Integer helpfulCount; // How many people found his reviews helpful
-	//private RatingDistribution ratingDistribution;
+	Integer num_cities; // How many cities has the user written reviews in?
+	Integer num_helpful_votes; // How many people found this user's reviews helpful
+	Integer num_reviews;
+	Integer num_type_reviews; // How many of the reviews were actually about restaurants
 	
-	private Element container;
-	
-	
-	
+	String id;
+	String location;
 	/**
-	 * @param id
 	 * @param userName
-	 * @param totalReviewsCount
-	 * @param restaurantReviewsCount
-	 * @param reviewsInCitiesCount
-	 * @param helpfulCount
+	 * @param num_cities
+	 * @param num_helpful_votes
+	 * @param num_reviews
+	 * @param num_type_reviews
+	 * @param id
+	 * @param location
 	 */
-	public TripAdvisorUser(String id, String userName,
-			Integer totalReviewsCount, Integer restaurantReviewsCount,
-			Integer reviewsInCitiesCount, Integer helpfulCount) {
-		this.id = id;
+	public TripAdvisorUser(String userName, Integer num_cities,
+			Integer num_helpful_votes, Integer num_reviews,
+			Integer num_type_reviews, String id, String location) {
 		this.userName = userName;
-		this.totalReviewsCount = totalReviewsCount;
-		this.restaurantReviewsCount = restaurantReviewsCount;
-		this.reviewsInCitiesCount = reviewsInCitiesCount;
-		this.helpfulCount = helpfulCount;
+		this.num_cities = num_cities;
+		this.num_helpful_votes = num_helpful_votes;
+		this.num_reviews = num_reviews;
+		this.num_type_reviews = num_type_reviews;
+		this.id = id;
+		this.location = location;
 	}
-
-	public TripAdvisorUser(Element passport) {
-		container = passport;
-		id = mineId();
-		userName = mineUserName();
-		
-		totalReviewsCount = mineTotalReviewCounts(); // No other way to do it but to mine them individually.
-		restaurantReviewsCount = mineRestaurantReviewsCount();
-		reviewsInCitiesCount = mineReviewsInCitiesCount();
-		helpfulCount = mineHelpfulCount();
-	}
-	
-	private Integer mineTotalReviewCounts() {
-		Elements conts = container.select("div.memberBadging > div.totalReviewBadge > span.badgeText");
-		if (conts.isEmpty() ) return 0;
-		Element cont = conts.first();
-		String countsStr = cont.ownText();
-		countsStr = countsStr.substring(0, countsStr.indexOf(" review") );
-		return Integer.valueOf(countsStr);
-	}
-
-	private Integer mineRestaurantReviewsCount() {
-		Elements conts = container.select("div.memberBadging > div.totalReviewBadge" +
-				" > div.contributionReviewBadge > span.badgeText");
-		if (conts.isEmpty() ) return 0;
-		Element cont = conts.first();
-		String countsStr = cont.ownText();
-		countsStr = countsStr.substring(0, countsStr.indexOf(" restaurant review") );
-		return Integer.valueOf(countsStr);
-	}
-
-	private Integer mineReviewsInCitiesCount() {
-		Elements conts = container.select("div.memberBadging > div.passportStampsBadge > span.badgeText"); 
-		if (conts.isEmpty() ) return 0;
-		Element cont = conts.first();
-		String countsStr = cont.ownText();
-		countsStr = countsStr.substring("Reviews in ".length() );
-		countsStr =	countsStr.substring(0, countsStr.indexOf(" cit"));
-		return Integer.valueOf(countsStr);
-	}
-
-	private Integer mineHelpfulCount() {
-		Elements conts = container.select("div.memberBadging > div.helpfulVotesBadge > span.badgeText"); 
-		if (conts.isEmpty() ) return 0;
-		Element cont = conts.first();
-		String countsStr = cont.ownText();
-		countsStr = countsStr.substring(0, countsStr.indexOf(" helpful vote") );
-		return Integer.valueOf(countsStr);
-	}
-
-	private String mineId() {
-		Elements conts = container.select("div.member_info > div.memberOverlayLink > div.avatar");
-		if (conts.isEmpty() ) return "-1";
-		Element cont = conts.first();
-		String linkAndId = cont.attr("class");
-		String idStr = linkAndId.substring(linkAndId.indexOf("profile_") + "profile_".length() );
-		return idStr;
-	}
-	
-	private String mineUserName() {
-		Elements conts = container.select("div.member_info > div.memberOverlayLink > div.username > span");
-		if (conts.isEmpty() ) return "Anon";
-		Element cont = conts.first();
-		String name = cont.text();
-		return name;
-	}
-
 	@Override
 	public String toString() {
-		return "TripAdvisorUser [id=" + id + ", userName=" + userName
-				+ ", totalReviewsCount=" + totalReviewsCount
-				+ ", restaurantReviewsCount=" + restaurantReviewsCount
-				+ ", reviewsInCitiesCount=" + reviewsInCitiesCount
-				+ ", helpfulCount=" + helpfulCount + "]";
+		return "TripAdvisorUser [userName=" + userName + ", num_cities="
+				+ num_cities + ", num_helpful_votes=" + num_helpful_votes
+				+ ", num_reviews=" + num_reviews + ", num_type_reviews="
+				+ num_type_reviews + ", id=" + id + ", location=" + location
+				+ "]";
 	}
-
-	
 	
 }
