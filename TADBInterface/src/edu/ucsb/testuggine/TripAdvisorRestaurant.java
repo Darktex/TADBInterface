@@ -1,6 +1,7 @@
 package edu.ucsb.testuggine;
 
 
+
 public class TripAdvisorRestaurant {
 	String name;
 	Address address;
