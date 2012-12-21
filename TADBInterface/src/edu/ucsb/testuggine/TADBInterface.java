@@ -26,6 +26,7 @@ public class TADBInterface {
 	 * @throws SQLException */
 	public TADBInterface(String restaurantsFilePath, String reviewsFilePath) throws FileNotFoundException, IOException, ParseException, SQLException {
 		parser = new JSONParser();
+		db = new MySQLConnection();
 		In restaurantsIn = new In(restaurantsFilePath);
 		while (!restaurantsIn.isEmpty()) {
 			String line = restaurantsIn.readLine();
@@ -66,7 +67,7 @@ public class TADBInterface {
 	 * "name": "Shake Shack"} */
 	private TripAdvisorRestaurant parseRestaurant(JSONObject jsonObject) {
 
-		String region_id = (String) jsonObject.get("region_id");
+		String region_id = String.valueOf((Long) jsonObject.get("region_id"));
 		String url = (String) jsonObject.get("url");
 		String phone = (String) jsonObject.get("phone");
 
@@ -88,7 +89,7 @@ public class TADBInterface {
 		
 		
 		String type = (String) jsonObject.get("type");
-		String id = (String) jsonObject.get("id");
+		String id = String.valueOf((Long) jsonObject.get("id"));
 		String name = (String) jsonObject.get("name");		
 
 
@@ -114,46 +115,39 @@ public class TADBInterface {
 		// TODO: Ask Myle about the helpful counter. Was it not mined? It's not the sample data I got.
 		
 		JSONObject ratings = (JSONObject) jsonObject.get("ratings");
-		Float globalRating = (Float) ratings.get("overall");
-		Float valueRating = (Float) ratings.get("value");
-		Float atmosphereRating = (Float) ratings.get("atmosphere");
-		Float serviceRating = (Float) ratings.get("service");
-		Float foodRating = (Float) ratings.get("food");
+		Float globalRating = (float) ((Double) ratings.get("overall")).doubleValue();
+		Float valueRating = (float) 0.0, atmosphereRating = (float) 0.0, serviceRating = (float) 0.0, foodRating = (float) 0.0;
+		if (ratings.containsKey("value"))
+		 valueRating = (float) ((Double) ratings.get("value")).doubleValue();
+		if (ratings.containsKey("atmosphere")) 
+			atmosphereRating = (float) ((Double) ratings.get("atmosphere")).doubleValue();
+		if (ratings.containsKey("service")) 
+			serviceRating = (float) ((Double) ratings.get("service")).doubleValue();
+		if (ratings.containsKey("food")) 
+			foodRating = (float) ((Double) ratings.get("food")).doubleValue();
+		Integer helpfulCounter = 0;
+		if (ratings.containsKey("helpful"))
+				helpfulCounter = (Integer) ratings.get("helpful"); // TODO Maybe the name will differ?
 		
 		String title = (String) jsonObject.get("title");
 		String text = (String) jsonObject.get("text");
 		JSONObject authorJSON = (JSONObject) jsonObject.get("author");
 		TripAdvisorUser author = parseAuthor(authorJSON);
-		String id = (String) jsonObject.get("id");
+		String id = String.valueOf((Long) jsonObject.get("id"));
 		String dateStr = (String) jsonObject.get("date");
-		String date = mySQLformat(dateStr);
-		String restaurant_id = (String) jsonObject.get("offering_id");
+		
+		String restaurant_id = String.valueOf((Long) jsonObject.get("offering_id"));
 		
 		
 		return new TripAdvisorReview(id, author, globalRating, valueRating, atmosphereRating,
-				serviceRating, foodRating, null, date, title, text, restaurant_id);
+				serviceRating, foodRating, helpfulCounter, dateStr, title, text, restaurant_id);
 	}
 	
 	/**
 	 * Input format: December 11, 2012\nNEW
 	 * Output format: return d.year() + "-" + d.month() + "-" + d.day();
 	 *  */
-	private String mySQLformat(String dateStr) {
-		Integer month_start_pos = 0;
-		Integer month_end_pos = dateStr.indexOf(" ");
-		
-		Integer day_start_pos = month_end_pos + 1;
-		Integer day_end_pos = dateStr.indexOf(", ", day_start_pos);
-		
-		Integer year_start_pos = day_end_pos + 2; // Comma + space
-		Integer year_end_pos = dateStr.length();
-		if (dateStr.contains("\nNEW")) year_end_pos = dateStr.indexOf("\nNEW");
-		
-		String month = dateStr.substring(month_start_pos, month_end_pos);
-		String day = dateStr.substring(day_start_pos, day_end_pos);
-		String year = dateStr.substring(year_start_pos, year_end_pos);
-		
-		return year + "-" + month + "-" + day;
+
 	}
 
 	/** Format: 
@@ -168,10 +162,17 @@ public class TADBInterface {
 	private TripAdvisorUser parseAuthor(JSONObject jsonObject) {
 		String id = (String) jsonObject.get("id");
 		String userName = (String) jsonObject.get("username");
-		Integer reviewsInCitiesCount = (Integer) jsonObject.get("num_cities");
-		Integer helpfulCount = (Integer) jsonObject.get("num_helpful_votes");
-		Integer totalReviewsCount = (Integer) jsonObject.get("num_reviews");
-		Integer restaurantReviewsCount = (Integer) jsonObject.get("num_type_reviews");
+		
+		Integer reviewsInCitiesCount = 0, helpfulCount = 0, totalReviewsCount = 0, restaurantReviewsCount = 0;
+		
+		if (jsonObject.containsKey("num_cities"))
+			reviewsInCitiesCount = ((Long) jsonObject.get("num_cities")).intValue();
+		if (jsonObject.containsKey("num_helpful_votes"))
+			helpfulCount = ((Long) jsonObject.get("num_helpful_votes")).intValue();
+		if (jsonObject.containsKey("num_reviews"))
+			totalReviewsCount = ((Long) jsonObject.get("num_reviews")).intValue();
+		if (jsonObject.containsKey("num_type_reviews"))
+			restaurantReviewsCount = ((Long) jsonObject.get("num_type_reviews")).intValue();
 		String location = (String) jsonObject.get("location");
 		
 		return new TripAdvisorUser(userName, reviewsInCitiesCount, helpfulCount, totalReviewsCount,
@@ -180,13 +181,14 @@ public class TADBInterface {
 	}
 
 	void writeToDB(TripAdvisorRestaurant r) throws SQLException {
-		String insertionQuery = "INSERT INTO  `TripAdvisorRestaurant` ("
-				+ "`name` ,`addressNum` ,`addressStreet` ,`addressCity` ,"
-				+ "`addressRegion` ,`addressZip` ,`phoneNumber` ,`url`," +
-				"`details`, `id`, `region_id`, `type`)"
-				+ "VALUES (? ,  ?,  ?,  "
-				+ "?,  ?,  ?,  ?,  ?,  "
-				+ "?,  ?,  ?, ?);";
+		String insertionQuery = "INSERT INTO `TripAdvisorRestaurant` " +
+				"(`name`, `addressNum`, `addressStreet`, `addressCity`, " +
+				"`addressRegion`, `addressZip`, `phoneNumber`, `url`, " +
+				"`details`, `id`, `region_id`, `type`) " +
+				"VALUES " +
+				"(?, ?, ?, ?, " +
+				"?, ?, ?, ?, " +
+				"?, ?, ?, ?);";
 
 		PreparedStatement prep = db.con.prepareStatement(insertionQuery);
 
@@ -222,7 +224,7 @@ public class TADBInterface {
 		String insertionQuery = "INSERT INTO `TripAdvisorReview` " +
 				"(`id`, `author_id`, `restaurant_id`, `globalRating`, `valueRating`, `atmosphereRating`, " +
 				"`serviceRating`, `foodRating`, `helpfulCounter`, `date`, `title`, `text`) " +
-				"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
+				"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
 
 		PreparedStatement prep = db.con.prepareStatement(insertionQuery);
 
@@ -237,7 +239,7 @@ public class TADBInterface {
 		prep.setFloat(6,  rev.atmosphereRating);
 		prep.setFloat(7,  rev.serviceRating);
 		prep.setFloat(8,  rev.foodRating);
-		prep.setInt(9, 0);	// prep.setInt(9,  rev.helpfulCounter); ?
+		prep.setInt(9, rev.helpfulCounter);
 		safeInsert(prep, 10, mySQLformat(rev.date));
 		safeInsert(prep, 11, rev.title);
 		safeInsert(prep, 12, rev.text);
@@ -304,11 +306,6 @@ public class TADBInterface {
 			prep.setString(pos, null);
 		else
 			prep.setString(pos, field);
-	}
-
-	public static void main(String[] args) {
-
-
 	}
 
 }
