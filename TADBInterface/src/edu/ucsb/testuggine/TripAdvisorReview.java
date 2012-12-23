@@ -52,7 +52,25 @@ public class TripAdvisorReview {
 		this.restaurant_id = restaurant_id;
 	}
 	
-	public static Date convertDate(String dateStr) {
+	public TripAdvisorReview(String id, TripAdvisorUser author,
+			Float globalRating, Float valueRating, Float atmosphereRating,
+			Float serviceRating, Float foodRating, Integer helpfulCounter,
+			String dateStr, String title, String text, String restaurant_id) {
+		this.id = id;
+		this.author = author;
+		this.globalRating = globalRating;
+		this.valueRating = valueRating;
+		this.atmosphereRating = atmosphereRating;
+		this.serviceRating = serviceRating;
+		this.foodRating = foodRating;
+		this.helpfulCounter = helpfulCounter;
+		this.date = convertDate(dateStr);
+		this.title = title;
+		this.text = text;
+		this.restaurant_id = restaurant_id;
+	}
+	
+	private static Date convertDate(String dateStr) {
 		Integer month_start_pos = 0;
 		Integer month_end_pos = dateStr.indexOf(" ");
 		
@@ -63,11 +81,18 @@ public class TripAdvisorReview {
 		Integer year_end_pos = dateStr.length();
 		if (dateStr.contains("\nNEW")) year_end_pos = dateStr.indexOf("\nNEW");
 		
-		String month = dateStr.substring(month_start_pos, month_end_pos);
-		String day = dateStr.substring(day_start_pos, day_end_pos);
-		String year = dateStr.substring(year_start_pos, year_end_pos);
+		String monthStr = dateStr.substring(month_start_pos, month_end_pos).toUpperCase();
+		Month month = Month.valueOf(monthStr);
+		Integer monthNum = month.ordinal() + 1; // enum is 0-indexed
+		Integer day = Integer.valueOf(dateStr.substring(day_start_pos, day_end_pos));
+		Integer year = Integer.valueOf(dateStr.substring(year_start_pos, year_end_pos));
 		
-		return new Date(month, day, year);
+		return new Date(monthNum, day, year);
+	}
+	
+	private enum Month {
+		JANUARY, FEBRUARY, MARCH, APRIL, MAY, JUNE, JULY, AUGUST, SEPTEMBER, OCTOBER, NOVEMBER, DECEMBER
+	}
 
 	@Override
 	public String toString() {

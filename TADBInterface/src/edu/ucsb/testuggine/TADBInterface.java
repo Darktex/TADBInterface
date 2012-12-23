@@ -12,6 +12,7 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
+import edu.princeton.cs.algs4.Date;
 import edu.princeton.cs.introcs.In;
 import edu.princeton.cs.introcs.StdOut;
 
@@ -142,13 +143,7 @@ public class TADBInterface {
 		return new TripAdvisorReview(id, author, globalRating, valueRating, atmosphereRating,
 				serviceRating, foodRating, helpfulCounter, dateStr, title, text, restaurant_id);
 	}
-	
-	/**
-	 * Input format: December 11, 2012\nNEW
-	 * Output format: return d.year() + "-" + d.month() + "-" + d.day();
-	 *  */
 
-	}
 
 	/** Format: 
 	 * {"username": "Estherleibel", 
@@ -245,6 +240,7 @@ public class TADBInterface {
 		safeInsert(prep, 12, rev.text);
 
 		if (!alreadyExistsRes.first()) {
+			StdOut.println("----\n" + prep + "\n--------");
 			prep.execute();
 		}
 		else 
@@ -253,6 +249,10 @@ public class TADBInterface {
 	}
 	
 	
+	private String mySQLformat(Date d) {
+		return d.year() + "-" + d.month() + "-" + d.day();
+	}
+
 	/** Format: 
 	 * {"username": "Estherleibel", 
 	 * "num_cities": 2, 
