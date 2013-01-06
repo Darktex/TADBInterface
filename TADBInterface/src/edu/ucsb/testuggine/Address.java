@@ -40,11 +40,16 @@ public class Address {
 	
 	/** Number is in return value[0], street name is in [1] */
 	private static String[] splitNumAndStreet(String address) {
+		String[] result = new String[2];
+		if (address == null) { 
+			result[0] = ""; 
+			result[1] = "";
+			return result;
+		}
 		if (address.contains("Ste")) { // Some address indicate the suite. I
 										// will have it removed
 			address = address.substring(0, address.indexOf("Ste"));
 		}
-		String[] result = new String[2];
 		Pattern numberFirst = Pattern.compile("(\\d+)\\s+(\\D+(\\s \\D+)?)");
 		Pattern streetFirst = Pattern.compile("(\\D+(\\s \\D+)?)\\s+(\\d+)");
 

@@ -52,28 +52,30 @@ public class TADBInterface {
 	}
 
 	/** String format example:
-	 * 
-	 * {"region_id": 60763, 
-	 * "url": "http://www.tripadvisor.com/...", 
-	 * "phone": "2128896600", 
-	 * "details": ["Price range: $5 - $20", "Cuisines: American, Hamburgers, Ice Cream, Hot Dogs", 
-	 * 				"Good for: Families with children, Outdoor seating, Dining on a budget", 
-	 * 				"Dining options: Breakfast/Brunch, Lunch, Dinner, Takeout, Late Night, Dessert"], 
-	 * "address": {"region": "NY", 
-	 * 				"street-address": "Southeast corner of Madison Square Park", 
-	 * 				"postal-code": "10010", 
-	 * 				"locality": "New York City"}, 
+	 * {"region_id": 32655,
+	 * "url": "http://www.tripadvisor.com/..."
+	 * "phone": "310-397-9999"
+	 * "details": ["Price range:\n $20 - $45", "Cuisines:\n Mexican"],
+	 * "address": {
+	 * 		"region": "CA", 
+	 * 		"street-address": "4500 S. Centinela Ave", 
+	 * 		"postal-code": "90066-6206",
+	 * 		"locality": "Los Angeles"}, 
 	 * "type": "restaurant", 
-	 * "id": 911447, 
-	 * "name": "Shake Shack"} */
+	 * "id": 515684, 
+	 * "name": "Casa Sanchez"
+	 */
 	private TripAdvisorRestaurant parseRestaurant(JSONObject jsonObject) {
 
 		String region_id = String.valueOf((Long) jsonObject.get("region_id"));
 		String url = (String) jsonObject.get("url");
 		String phone = (String) jsonObject.get("phone");
+		phone = phone.replaceAll("+1 ?", ""); // removing country code, as we only mine US restaurants
+		phone = phone.replaceAll("\\D", ""); // removing hyphens and non-digits in general
 
 		String details = "";
 		JSONArray detailsArray = (JSONArray) jsonObject.get("details");
+		if (detailsArray == null) detailsArray = new JSONArray();
 		@SuppressWarnings("unchecked")
 		Iterator<String> iterator = detailsArray.iterator();
 		while (iterator.hasNext()) {
@@ -302,7 +304,7 @@ public class TADBInterface {
 	private static void safeInsert(PreparedStatement prep, int pos, String field)
 			throws SQLException { // JDBC sends an empty string instead of a
 		// NULL value.
-		if (field.isEmpty())
+		if (field == null || field.isEmpty())
 			prep.setString(pos, null);
 		else
 			prep.setString(pos, field);
