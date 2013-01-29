@@ -84,8 +84,8 @@ public class TripAdvisorReview {
 		String monthStr = dateStr.substring(month_start_pos, month_end_pos).toUpperCase();
 		Month month = Month.valueOf(monthStr);
 		Integer monthNum = month.ordinal() + 1; // enum is 0-indexed
-		Integer day = Integer.valueOf(dateStr.substring(day_start_pos, day_end_pos));
-		Integer year = Integer.valueOf(dateStr.substring(year_start_pos, year_end_pos));
+		Integer day = Integer.valueOf(dateStr.substring(day_start_pos, day_end_pos).trim());
+		Integer year = Integer.valueOf(dateStr.substring(year_start_pos, year_end_pos).trim());
 		
 		return new Date(monthNum, day, year);
 	}

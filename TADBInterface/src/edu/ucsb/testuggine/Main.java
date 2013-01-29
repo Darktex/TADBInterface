@@ -15,10 +15,13 @@ import org.kohsuke.args4j.Option;
 public class Main {
 
 	@Option(name="-rest",usage="Specify the path to an .offerings file")
-	private String restFile;
+	private String restFile = "";
 
 	@Option(name="-rev",usage="Specify the path to a .reviews file")
-	private String revFile;
+	private String revFile = "";
+	
+	@Option(name="-verbose",usage="Print what's happening")
+    private boolean verbose = false;
 
 	// receives other command line parameters than options
 	@Argument
@@ -50,11 +53,6 @@ public class Main {
 			// if enough arguments are given.
 			if( arguments.isEmpty() )
 				throw new CmdLineException("No argument is given");
-			if (restFile.isEmpty()) 
-				throw new CmdLineException("Must specify an .offering file");
-			if (revFile.isEmpty()) 
-				throw new CmdLineException("Must specify a .reviews file");
-
 
 		} catch( CmdLineException e ) {
 			// if there's a problem in the command line,
@@ -73,7 +71,7 @@ public class Main {
 		}
 
 		@SuppressWarnings("unused")
-		TADBInterface tadb = new TADBInterface(restFile, revFile);
+		TADBInterface tadb = new TADBInterface(restFile, revFile, verbose);
 
 	}
 }
